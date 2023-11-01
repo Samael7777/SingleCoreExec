@@ -2,4 +2,4 @@
 Executes an application on a single CPU core (#0)
 <br>
 Using: <br>
-SingleCoreExec App.exe
+SingleCoreExec App.exe [app command line]
