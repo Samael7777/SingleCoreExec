@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SingleCoreExec": {
+      "commandName": "Project",
+      "commandLineArgs": "\"d:\\Games\\Kings Bounty\\01. The Legend\\kb.exe\""
+    }
+  }
+}
