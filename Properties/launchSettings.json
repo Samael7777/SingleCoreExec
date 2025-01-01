@@ -2,7 +2,7 @@
   "profiles": {
     "SingleCoreExec": {
       "commandName": "Project",
-      "commandLineArgs": "\"d:\\Games\\Kings Bounty\\01. The Legend\\kb.exe\""
+      "commandLineArgs": "\"d:\\Games\\Dragon Age Ultimate Edition\\bin_ship\\daorigins.exe\""
     }
   }
 }

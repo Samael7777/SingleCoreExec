@@ -1,35 +1,75 @@
-namespace SingleCoreExec
+using System.Diagnostics;
+
+
+namespace SingleCoreExec;
+
+internal static class Program
 {
-    internal static class Program
+    /// <summary>
+    ///  The main entry point for the application.
+    /// </summary>
+    [STAThread]
+    static void Main(string[] args)
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main(string[] args)
+        EnableHiDpi();
+
+        if (args.Length == 0)
         {
-            AppDomain.CurrentDomain.UnhandledException += OnDomainException;
-            ApplicationConfiguration.Initialize();
-            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-            Application.ThreadException += OnThreadException;
-            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-            Application.Run(new AppContext(args));
+            ShowError("App name not specified.\r\nUse:\r\nSingleCoreExec App.exe");
+            return;
         }
 
-        private static void OnDomainException(object sender, UnhandledExceptionEventArgs e)
-        {
-            ExceptionHandler(e.ExceptionObject as Exception);
-        }
+        var appName = args[0];
+        var cmdLine = args.Length == 1 ? [""] : args[1..];
+        
+        StartAppOnSingleCore(appName, cmdLine);
+    }
 
-        private static void OnThreadException(object sender, ThreadExceptionEventArgs e)
+    private static void StartAppOnSingleCore(string appName, string[] cmdLine)
+    {
+        try
         {
-            ExceptionHandler(e.Exception);
-        }
+            if (!File.Exists(appName))
+                throw new FileNotFoundException($"{appName} not found.");
 
-        private static void ExceptionHandler(Exception? ex)
+            var startInfo = new ProcessStartInfo(appName)
+            {
+                Arguments = string.Join(" ", cmdLine),
+                UseShellExecute = true
+            };
+
+            using var process = new Process();
+            process.StartInfo = startInfo;
+            
+            if (!process.Start())
+                throw new ApplicationException("Can't create app process.");
+
+            process.ProcessorAffinity = 0x01;
+        }
+        catch (Exception e)
         {
-            MessageBox.Show(ex?.Message ?? "Unknown error.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            Application.ExitThread();
+            ShowError(e.Message);
+        }
+    }
+
+    private static void ShowError(string message)
+    {
+        const int mbError = 0x00000010;
+
+        _ = WinApi.MessageBoxW(IntPtr.Zero, message, "Error", mbError);
+    }
+
+    private static void EnableHiDpi()
+    {
+        try
+        {
+            // Use System DPI Awareness
+            _ = WinApi.SetProcessDpiAwareness(ProcessDpiAwareness.ProcessSystemDpiAware);
+        }
+        catch (DllNotFoundException)
+        {
+            // Fallback for older systems
+            WinApi.SetProcessDPIAware();
         }
     }
 }
